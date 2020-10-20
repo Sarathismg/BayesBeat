@@ -1,5 +1,5 @@
 # BayesBeat
-Source code of our paper BayesBeat: A Bayesian Deep Learning Approach for Atrial Fibrillation Detection from Noisy Photoplethysmography Data
+Source code of BayesBeat: A Bayesian Deep Learning Approach for Atrial Fibrillation Detection from Noisy Photoplethysmography Data
 ## Requirements
 ```
 CUDA version 10.2
