@@ -15,28 +15,53 @@ ENSEMBLES = 1
 DEEPBEAT_DATA_PATH = "data/"
 
 
-def get_uncertainty(model, input_signal, T=15, normalized=False):
-    input_signal = input_signal.view(1, -1)
-    input_signal = input_signal.unsqueeze(0)
-    input_signals = input_signal.repeat(T, 1, 1)
+def get_uncertainty(model, input_signal, T=15, normalized=False, single_segment=True):
+    """
+    Batchified version
+    `single_segment` is kept just only to maintain backward compatibility
+    """
+    # [b, 1, 800] -> [T*b, 1, 800]
+    input_signals = torch.repeat_interleave(input_signal, T, dim=0)
 
+    # [T*b, 2]
     net_out, _ = model(input_signals)
+
     if normalized:
-        prediction = F.softplus(net_out)
-        p_hat = prediction / torch.sum(prediction, dim=1).unsqueeze(1)
+        # [T*b, 2] -> [b, T, 2]
+        prediction = F.softplus(net_out).view(-1, T, 2)
+        # [b, T, 2] / ([b, T, 2] -> [b, T] -> [b, T, 1]) -> [b, T, 2]
+        p_hat = prediction / torch.sum(prediction, dim=2).unsqueeze(2)
     else:
-        p_hat = F.softmax(net_out, dim=1)
+        # [T*b, 2] -> [b, T, 2]
+        p_hat = F.softmax(net_out, dim=1).view(-1, T, 2)
+
     p_hat = p_hat.detach().cpu().numpy()
-    p_bar = np.mean(p_hat, axis=0)
 
-    temp = p_hat - np.expand_dims(p_bar, 0)
-    epistemic = np.dot(temp.T, temp) / T
-    epistemic = np.diag(epistemic)
+    # [b, T, 2] -> [b, 2]
+    p_bar = np.mean(p_hat, axis=1)
 
-    aleatoric = np.diag(p_bar) - (np.dot(p_hat.T, p_hat) / T)
-    aleatoric = np.diag(aleatoric)
+    # [b, T, 2] - [b, 2] -> [b, T, 2]
+    temp = p_hat - np.expand_dims(p_bar, 1)
 
-    return torch.Tensor(p_bar.reshape(1, 2)), epistemic, aleatoric
+    epistemics = np.zeros((temp.shape[0], 2))
+    aleatorics = np.zeros((temp.shape[0], 2))
+    
+    "Need to vectorize this loop"
+    for b in range(temp.shape[0]):
+        # [, 2, T] * [, T, 2] -> [, 2, 2]
+        epistemic = np.dot(temp[b].T, temp[b]) / T
+        # [, 2, 2] -> [, 2]
+        epistemics[b] = np.diag(epistemic)
+
+        # [, 2, T] * [, T, 2] -> [, 2, 2]
+        aleatoric = np.diag(p_bar[b]) - (np.dot(p_hat[b].T, p_hat[b]) / T)
+        # [, 2, 2] -> [, 2]
+        aleatorics[b] = np.diag(aleatoric)
+
+    if single_segment:
+        return torch.Tensor(p_bar), epistemics.reshape(2), aleatorics.reshape(2)
+    else:
+        return torch.Tensor(p_bar), epistemics, aleatorics
 
 
 def evaluate_with_uncertainity(model, generator, prefix='val_', wandb_log=False, uncertainity_bound=0.03):
