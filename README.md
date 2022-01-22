@@ -4,9 +4,9 @@ The Pretrained pytorch model file for CPU is provided in [`saved_model`](saved_m
 
 ## Requirements
 ```
-CUDA version 10.2
-Python version 3.7
-PyTorch version 1.5.1
+CUDA version 10.2+
+Python version 3.7+
+PyTorch version 1.5.1+
 ```
 
 ## How to run:
@@ -14,6 +14,7 @@ PyTorch version 1.5.1
    - Install all the [requirements](requirements.txt) and their dependencies
    - Then download the dataset and put that into proper folder structure
    - Finally, run `python evaluate_bayesian.py`
+   - For the version that utilizes gpu to evaluate, please refer to this [repo](https://github.com/Subangkar/BayesBeat): https://github.com/Subangkar/BayesBeat
 
 **Data Folder Structure for running [`evaluate_bayesian.py`](evaluate_bayesian.py):**
 ```
