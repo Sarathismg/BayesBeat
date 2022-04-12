@@ -1,5 +1,6 @@
 # BayesBeat
-Source code & Pretrained model for our IMWUT (UbiComp) 2022 paper: "[BayesBeat: A Bayesian Deep Learning Approach for Atrial Fibrillation Detection from Noisy Photoplethysmography (PPG) Signals](https://dl.acm.org/doi/10.1145/3517247)" [preprint](https://arxiv.org/abs/2011.00753)
+Source code & Pretrained model for our IMWUT (UbiComp) 2022 paper: "[BayesBeat: A Bayesian Deep Learning Approach for Atrial Fibrillation Detection from Noisy Photoplethysmography (PPG) Signals](https://dl.acm.org/doi/10.1145/3517247)" [[preprint](https://arxiv.org/abs/2011.00753)]
+
 The Pretrained pytorch model file for CPU is provided in [`saved_model`](saved_model) folder
 
 ## Requirements
